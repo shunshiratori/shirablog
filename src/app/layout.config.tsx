@@ -1,3 +1,4 @@
+import { LinkItemType } from "fumadocs-ui/layouts/links";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 
 /**
@@ -9,7 +10,7 @@ import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
  */
 export const baseOptions: BaseLayoutProps = {
   nav: {
-    title: <>ShiraBlog</>,
+    title: <p className="text-2xl font-bold">ShiraBlog</p>,
   },
   links: [
     {
@@ -18,4 +19,13 @@ export const baseOptions: BaseLayoutProps = {
       active: "nested-url",
     },
   ],
+  githubUrl: "https://github.com/shunshiratori",
 };
+
+export const linkItems: LinkItemType[] = [
+  {
+    text: "Blog",
+    url: "/blog",
+    active: "nested-url",
+  },
+];
