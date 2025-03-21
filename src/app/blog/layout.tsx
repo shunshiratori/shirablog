@@ -1,9 +1,5 @@
-import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import type { ReactNode } from "react";
-import { baseOptions, linkItems } from "@/app/layout.config";
 import { source } from "@/lib/source";
-import { Header } from "@/components/header";
-import { getLinks } from "fumadocs-ui/layouts/shared";
 import { BlogLayout } from "@/components/docs";
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -13,7 +9,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     // </DocsLayout>
     <BlogLayout
       tree={source.pageTree}
-      sidebar={{ enabled: false }}
+      // sidebar={{ enabled: false }}
       nav={{
         enabled: false,
         // component: (

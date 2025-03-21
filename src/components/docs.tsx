@@ -6,14 +6,13 @@ import {
   checkPageTree,
   layoutVariables,
 } from "fumadocs-ui/layouts/docs/shared";
-import { type BaseLayoutProps, getLinks } from "fumadocs-ui/layouts/shared";
+import { type BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import {
   type PageStyles,
   StylesProvider,
   TreeContextProvider,
 } from "fumadocs-ui/provider";
 import type { HTMLAttributes, ReactNode } from "react";
-import { Header } from "./header";
 
 export interface DocsLayoutProps extends BaseLayoutProps {
   tree: PageTree.Root;
@@ -24,12 +23,11 @@ export interface DocsLayoutProps extends BaseLayoutProps {
 }
 
 export const BlogLayout = ({
-  nav: { transparentMode, ...nav } = {},
-  i18n = false,
+  nav: { transparentMode } = {},
   ...props
 }: DocsLayoutProps): ReactNode => {
   checkPageTree(props.tree);
-  const links = getLinks(props.links ?? [], props.githubUrl);
+  // const links = getLinks(props.links ?? [], props.githubUrl);
 
   const variables = cn(
     "[--fd-nav-height:3.5rem] [--fd-tocnav-height:36px] xl:[--fd-toc-width:268px] xl:[--fd-tocnav-height:0px]"
