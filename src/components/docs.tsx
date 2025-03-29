@@ -56,7 +56,6 @@ export const BlogLayout = ({
             ...props.containerProps?.style,
           }}
         >
-          {/* <Header finalLinks={links} nav={nav} /> */}
           <StylesProvider {...pageStyles}>{props.children}</StylesProvider>
         </main>
       </NavProvider>

@@ -1,0 +1,118 @@
+---
+title: 映画検索アプリを作ってAPIの基本を身につけた話
+description: 外部APIの使い方を学ぶため、映画検索アプリをReactで作成しました。fetchの基本やAPIレスポンスの扱い方、ハマったポイントなどを初心者目線でまとめています。
+date: 2025-03-29
+---
+
+## はじめに
+
+react の学習をするために簡易的な web アプリを作成をしました。
+今回は API の使用も同時に学習するために、**映画検索アプリ**を作成しました。
+どのような過程で作成したのか、また、どのようなことを学んだのかをまとめていきます。
+
+## アプリ概要
+
+映画検索アプリは、映画のタイトルを入力すると、API から映画情報を取得して表示するシンプルなアプリです。
+映画情報を取得するために、[TMDB API](https://developer.themoviedb.org/reference/intro/getting-started)を使用しました。
+TMDB API は、映画やテレビ番組に関する情報を提供する RESTful API です。
+実際にデプロイしたものは[こちら](https://movie-finder-ten.vercel.app/)から確認できます。
+ソースコードは[こちら](https://github.com/shunshiratori/API-practice)になります
+
+## 映画検索アプリの実装ステップ
+
+ここからは、映画検索アプリ作成までに行ったステップをまとめていきます。
+
+### 1.検索フォーム作成
+
+まずは基本的な UI を作成することにし、検索フォームと検索結果を表示するためのコンポーネントを作成しました。
+
+```jsx title="検索フォーム"
+<div className="App">
+  <h1>映画検索</h1>
+  <input
+    type="text"
+    value={searchTitle}
+    onChange={(e) => {
+      setSearchTitle(e.target.value);
+    }}
+  />
+  <button onClick={() => fetchMovie(searchTitle)}>検索</button>
+</div>
+```
+
+```jsx title="検索結果の表示"
+<div style={{ marginTop: "20px" }}>
+  {searchResult.results.map((movie) => (
+    <div
+      key={movie.id}
+      style={{
+        display: "flex",
+        gap: "20px",
+        marginTop: "20px",
+      }}
+    >
+      <div>
+        <h2>{movie.title}</h2>
+        <p>{movie.overview}</p>
+      </div>
+      <img
+        src={`https://image.tmdb.org/t/p/w300_and_h450_bestv2${movie.backdrop_path}`}
+        alt={movie.title}
+        style={{ width: "100%" }}
+      />
+    </div>
+  ))}
+</div>
+```
+
+### 2.映画情報の表示処理
+
+まずは API キーを取得するために、[TMDB のアカウント](https://www.themoviedb.org/signup)を作成し、API キーを取得しました。
+API キーを取得したら、API を使用する準備が整ったため、実際に API を使用して映画情報を取得する処理を実装しました。
+
+```jsx title="APIの取得"
+const url = `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(
+  searchTitle
+)}&language=ja`;
+const options = {
+  headers: {
+    Authorization: `${import.meta.env.VITE_API_KEY}`,
+  },
+};
+
+try {
+  const response = await fetch(url, options);
+  const data = await response.json();
+  setSearchResult(data);
+  if (data.total_results === 0) {
+    setErrorMassage("検索結果がありません");
+  }
+} catch (error) {
+  console.error("リクエストに失敗しました:", error);
+}
+```
+
+### 3.リファクタリング
+
+一通りの実装が終わったタイミングで気になる部分をリファクタリングしました。
+具体的には API の入力フォームに何も入っていない場合は、アラートが出るようにしたり、入力値に意図しない script タグが入っている場合でも文字列に変換するようにしてセキュリティ面での対策も行なってみました。
+
+```jsx title="入力値のチェック"
+if (!searchTitle.trim()) {
+  alert("検索ワードを入力してください");
+  setErrorMassage("検索ワードを入力してください");
+  return;
+}
+```
+
+```jsx title="入力値のセキュリティ対策"
+const url = `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(
+  searchTitle
+)}&language=ja`;
+```
+
+## まとめ
+
+今回は、React の学習をするとともに、API の使用方法を学ぶために映画検索アプリを作成しましたが、API の使用方法やエラーハンドリング、リファクタリングなど、実際に手を動かして学ぶことができました。
+また、API を使用することで、実際のデータを取得して表示することができるため、より実践的な学習ができたと思います。
+今後は、さらに複雑なアプリケーションを作成することで、React や API の使用方法を深めていきたいと思います。
