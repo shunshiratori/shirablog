@@ -1,0 +1,162 @@
+---
+title: React学習記録：Qiita APIで簡単Webアプリを作るまでのステップ
+description: ReactとAPIの基礎を身につけるため、QiitaのAPIを使って記事一覧を表示するだけのシンプルなWebアプリを作ってみました。作成の過程と詰まったポイントなどをまとめています。
+date: 2025-03-31
+---
+
+## はじめに
+
+今回の学習の目的は、前回に引き続き、React の基礎を学ぶことと、API の使い方を理解することです。具体的には、Qiita の API を利用して、記事一覧を表示する Web アプリを作成しました。
+Qiita は、プログラミングに関する情報を共有するためのプラットフォームで、API を利用することで、記事の一覧や詳細情報を取得することができます。これを利用して、React で簡単な Web アプリを作成しました。
+Qiita の API を使うことで、リアルタイムで最新の情報を取得できるため、学習や開発に役立ちます。また、API を利用することで、データの取得や表示の仕組みを理解することができ、React の学習にも役立ちます。
+
+## 今回作ったもの
+
+今回は Qiita の記事を取得して表示するだけのシンプルな Web アプリを作成しました。
+Qiita の API を利用して、記事の一覧を取得し、React で表示するだけのアプリです。具体的には、以下の機能を実装しました。
+
+- Qiita の記事一覧を取得して表示する
+- 記事のタイトル、作成日、更新日を表示する
+- 記事の詳細ページへのリンクを作成する
+- 自動で記事の更新されるようにする
+
+## 実装ステップ
+
+作成を進める前に自分の中では大きく分けて 4 つのステップに分けて実装を進めました。
+
+### UI の作成
+
+まずは、Qiita の記事一覧を表示するための UI を作成しました。具体的には、以下の要素を含むシンプルな UI を作成しました。
+
+- タイトル
+- 日付
+- いいね数
+- 記事の詳細ページへのリンク
+
+### API 情報の取得
+
+次に、Qiita の API を利用して、記事の一覧を取得する処理を実装しました。具体的には、以下の手順で実装しました。
+まずは UseEffect を使用して、記事一覧を取得する処理を実装しました。
+
+```ts title="useEffect"
+useEffect(() => {
+  const API_URL =
+    "https://qiita.com/api/v2/items?page=1&per_page=100&query=user:shun_shiratori";
+  const fetchPosts = async () => {
+    try {
+      const res = await fetch(API_URL, {
+        headers: {
+          Authorization: `Bearer ${import.meta.env.VITE_QIITA_API_KEY}`,
+        },
+      });
+      const data = await res.json();
+      const formatted: QiitaPosts[] = data
+        .map((post: QiitaPosts) => ({
+          title: post.title,
+          likes_count: post.likes_count,
+          created_at: new Date(post.created_at).toLocaleDateString(),
+          url: post.url,
+        }))
+        .slice(0, 5);
+      setResult(formatted);
+    } catch (error) {
+      console.error("エラーが発生しました:", error);
+    }
+  };
+  fetchPosts();
+}, []);
+```
+
+ここまでで大体の実装が完了しました。
+![Image](https://gyazo.com/885b150b7da280615fbd180b0fa9be0e.png)
+
+## リファクタリング
+
+ここからは気になるところをリファクタリングしていきます。
+
+### 日付の整形
+
+投稿日のところが`2023-03-31T00:00:00+09:00`のような ISO 8601 形式の文字列で表示されているので、こちらを日付だけ表示するために変換しました。
+
+```js
+created_at: new Date(post.created_at).toLocaleDateString();
+```
+
+### 記事取得のラグを解消
+
+初めは useEffect の中で API を叩いていましたが、API を叩くたびにコンポーネントが再描画されてしまうので、useEffect の外に出しました。
+最初はしょうがないと思っていましたが、データを事前に取得して埋め込む方法を見つけたため、物は試しということでこちらの方法を試してみました。
+
+#### 事前に API を叩いてデータを取得する
+
+コンポーネントとは別で script を作成して、データを取得します。
+
+```js title="scripts/fetch-qiita.js"
+import fs from "fs";
+import path from "path";
+import fetch from "node-fetch";
+import "dotenv/config";
+
+const API_URL =
+  "https://qiita.com/api/v2/items?page=1&per_page=100&query=user:shun_shiratori";
+
+const OUTPUT_PATH = path.resolve("public", "qiita.json");
+
+(async () => {
+  try {
+    const res = await fetch(API_URL, {
+      headers: {
+        Authorization: `Bearer ${process.env.VITE_QIITA_API_KEY}`,
+      },
+    });
+
+    const data = await res.json();
+
+    const formatted = data.slice(0, 5).map((post) => ({
+      title: post.title,
+      likes_count: post.likes_count,
+      created_at: new Date(post.created_at).toLocaleDateString(),
+      url: post.url,
+    }));
+
+    fs.writeFileSync(OUTPUT_PATH, JSON.stringify(formatted, null, 2));
+    console.log("✅ Qiitaデータを保存しました →", OUTPUT_PATH);
+  } catch (err) {
+    console.error("❌ 取得エラー:", err);
+    process.exit(1);
+  }
+})();
+```
+
+#### JSON を保存
+
+fetch-qiita.js を実行するために package.json に以下のように追記します。
+
+```json title="package.json"
+{
+  "scripts": {
+    "fetch-qiita": "node scripts/fetch-qiita.js"
+  }
+}
+```
+
+次に、以下のコマンドを実行して、Qiita のデータを取得し、qiita.json に保存します。
+
+```bash
+npm run fetch:qiita
+npm run dev
+```
+
+作成された qiita.json をコンポーネント内でインポートして、表示するようにすれば無事解決です。
+ただ、Qiita 側で記事が更新された際に都度ビルドを実行するのは面倒なので、GitHub Actions を使って自動化することにしました。
+ここら辺は今回は浅くしか理解することができなかったため、どこかで詳しく調べてみようと思います。
+
+## デプロイ
+
+最後はデプロイですが、ドメインは cloudflare を使用しているので、Vercel でデプロイした後に、Cloudflare にドメインを設定しました。
+基本的には自動でやってくるので、楽ですね。。
+
+## まとめ
+
+前回に引き続き、React✖︎API の基礎を学ぶことができました。
+少しずつ難易度を上げながら新しい学びを得ていきたいと思います。
