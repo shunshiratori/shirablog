@@ -1,9 +1,0 @@
-# *
-User-agent: *
-Allow: /
-
-# Host
-Host: https://www.shirashun.com/
-
-# Sitemaps
-Sitemap: https://www.shirashun.com/sitemap.xml
