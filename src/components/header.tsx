@@ -18,6 +18,7 @@ import { SearchOnly } from "fumadocs-ui/provider";
 import { ChevronDown, Languages } from "lucide-react";
 import { Menu, MenuContent, MenuLinkItem, MenuTrigger } from "./menu";
 import { Navbar, NavbarMenuLink } from "./navbar";
+import { NavigationMenuList } from "fumadocs-ui/components/ui/navigation-menu";
 
 export const Header = ({
   nav: { enableSearch = true, ...nav } = {},
@@ -36,9 +37,13 @@ export const Header = ({
 
   return (
     <Navbar>
-      <Title title={nav.title} url={nav.url} />
+      <Title
+        title={nav.title}
+        url={nav.url}
+        className="text-2xl font-bold mr-2"
+      />
       {nav.children}
-      {/* <NavigationMenuList className="flex flex-row items-center gap-2 max-sm:hidden">
+      <NavigationMenuList className="flex flex-row items-center gap-2 max-sm:hidden">
         {navItems
           .filter((item) => !isSecondary(item))
           .map((item, i) => (
@@ -48,7 +53,7 @@ export const Header = ({
               className="text-sm"
             />
           ))}
-      </NavigationMenuList> */}
+      </NavigationMenuList>
 
       <div className="flex flex-1 flex-row items-center justify-end lg:gap-1.5">
         {enableSearch ? (

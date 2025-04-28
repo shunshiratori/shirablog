@@ -25,10 +25,10 @@ export const baseOptions: BaseLayoutProps = {
 
 export const linkItems: LinkItemType[] = [
   {
-    text: "Blog",
+    text: "記事一覧",
     url: "/blog",
     active: "nested-url",
   },
 ];
 
-export const postsPerPage = 5;
+export const postsPerPage = 3;
