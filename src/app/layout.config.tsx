@@ -8,9 +8,10 @@ import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
  * Home Layout: app/(home)/layout.tsx
  * Docs Layout: app/docs/layout.tsx
  */
+export const title = "ShiraBlog";
 export const baseOptions: BaseLayoutProps = {
   nav: {
-    title: <p className="text-2xl font-bold">ShiraBlog</p>,
+    title,
   },
   links: [
     {
@@ -29,3 +30,5 @@ export const linkItems: LinkItemType[] = [
     active: "nested-url",
   },
 ];
+
+export const postsPerPage = 5;

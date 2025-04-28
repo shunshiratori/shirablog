@@ -1,12 +1,11 @@
-import { source } from "@/lib/source";
+import { getSortedByDatePosts } from "@/lib/source";
 import Link from "next/link";
 
 export default function HomePage() {
-  const posts = source.getPages();
+  const posts = getSortedByDatePosts().slice(0, 3);
   return (
     <div className="container mx-auto">
-      <h2 className="text-center text-5xl mb-3 font-bold">ShiraBlog</h2>
-      <p className="text-center text-lg">しらブログ</p>
+      <h2 className="text-center text-5xl mb-3 font-bold">しらブログ</h2>
 
       <div className="grid gap-4 my-10">
         {posts.map((post, id) => {
