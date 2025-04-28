@@ -10,6 +10,9 @@ export default function HomePage() {
 
       <div className="grid gap-4 my-10">
         {posts.map((post, id) => {
+          const date = new Date(post.data.date).toLocaleDateString("ja-JP", {
+            timeZone: "Asia/Tokyo",
+          });
           return (
             <article
               key={id}
@@ -18,6 +21,7 @@ export default function HomePage() {
               <Link className="block p-4" href={`/blog/${post.slugs}`}>
                 <p className="text-xl">{post.data.title}</p>
                 <p className="text-base mt-2">{post.data.description}</p>
+                <p className="text-right">{date}</p>
               </Link>
             </article>
           );
