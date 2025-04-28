@@ -2,7 +2,7 @@ import { getSortedByDatePosts } from "@/lib/source";
 import Link from "next/link";
 
 export default function HomePage() {
-  const posts = getSortedByDatePosts().slice(0, 3);
+  const posts = getSortedByDatePosts().slice(0, 10);
   return (
     <div className="container mx-auto">
       <h2 className="text-center text-5xl mb-3 font-bold">しらブログ</h2>
