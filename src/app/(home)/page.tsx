@@ -1,23 +1,9 @@
 import { getSortedByDatePosts } from "@/lib/source";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { postsPerPage } from "../layout.config";
 
-export const dynamicParams = false;
-
-const totalPosts = getSortedByDatePosts().length;
-const pageCount = Math.ceil(totalPosts / postsPerPage);
-
-const Page = async (props: { params: Promise<{ slug?: string[] }> }) => {
+const Page = () => {
   // const posts = source.getPages();
-  const params = await props.params;
-  const pageIndex = params.slug ? Number.parseInt(params.slug[0], 10) - 1 : 0;
-  if (pageIndex < 0 || pageIndex >= pageCount) notFound();
-
-  const startIndex = pageIndex * postsPerPage;
-  const endIndex = startIndex + postsPerPage;
-  const posts = getSortedByDatePosts().slice(startIndex, endIndex);
-
+  const posts = getSortedByDatePosts().slice(0, 3);
   return (
     <div className="container mx-auto">
       <h2 className="text-center text-5xl mb-3 font-bold">しらブログ</h2>

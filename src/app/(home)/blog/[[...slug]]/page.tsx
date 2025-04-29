@@ -37,7 +37,7 @@ const Page = async (props: { params: Promise<{ slug?: string[] }> }) => {
             >
               <Link className="block p-4" href={`/blog/${post.slugs}`}>
                 <p className="text-xl">{post.data.title}</p>
-                <p className="text-base m-2">{post.data.description}</p>
+                <p className="text-base mt-2">{post.data.description}</p>
                 <p className="text-right">{date}</p>
               </Link>
             </article>
