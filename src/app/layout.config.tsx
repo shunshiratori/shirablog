@@ -31,4 +31,4 @@ export const linkItems: LinkItemType[] = [
   },
 ];
 
-export const postsPerPage = 3;
+export const postsPerPage = 5;
