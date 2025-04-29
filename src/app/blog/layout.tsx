@@ -1,25 +1,11 @@
 import type { ReactNode } from "react";
-import { source } from "@/lib/source";
+import { sortedByDatePageTree } from "@/lib/source";
 import { BlogLayout } from "@/components/docs";
+import { baseOptions, linkItems } from "../layout.config";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    // <DocsLayout tree={source.pageTree} {...baseOptions} tabMode="navbar">
-    //   {children}
-    // </DocsLayout>
-    <BlogLayout
-      tree={source.pageTree}
-      // sidebar={{ enabled: false }}
-      nav={{
-        enabled: false,
-        // component: (
-        //   <Header
-        //     finalLinks={getLinks(linkItems, baseOptions.githubUrl)}
-        //     {...baseOptions}
-        //   />
-        // ),
-      }}
-    >
+    <BlogLayout {...baseOptions} tree={sortedByDatePageTree} links={linkItems}>
       {children}
     </BlogLayout>
   );

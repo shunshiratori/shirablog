@@ -8,11 +8,6 @@ export default function Layout({ children }: { children: ReactNode }) {
       {...baseOptions}
       nav={{
         enabled: false,
-        // component:
-        // <Header
-        //   finalLinks={getLinks(linkItems, baseOptions.githubUrl)}
-        //   {...baseOptions}
-        // />
       }}
     >
       <div className="my-16 container mx-auto max-w-6xl">{children}</div>
