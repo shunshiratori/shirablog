@@ -1,0 +1,100 @@
+---
+title: 初めてfirebaseを導入してみた
+description: firebaseを使用してデータの保存と取得を行う方法について、実際に手を動かしながら学んでみました。今回は簡単にfirebaseの導入についてまとめてみます。
+date: 2025-05-07
+---
+
+## はじめに
+
+今回は、初めてデータ保存を行った web アプリケーションを作成する上で Firebase が候補に上がったため、実際に使用しながら簡単にまとめてみます。
+
+## Firebase とは
+
+Firebase とは Google が提供している開発ラットフォームで、アプリや Web サービスを素早く作れるようにするためのツールです。
+具体的には Firestore によるデータの保存・取得を行なったり、Authenication によるユーザーのログイン機能を実装したりすることができます。
+
+### Firebase の強み
+
+Firebase の強みを調べてみると主に以下の 4 つが挙げられました。
+
+- サーバーの知識がなくても簡単に導入できる(バックエンドが不要で始められる)
+- Google アカウントがあれば無料で使用できる
+- React や Vue.js などのフロントエンドと相性が良い
+- スマホアプリにも使える
+
+## Firebase の導入・初期化
+
+使用するにあたってまずは、Firebase SDK を導入します。
+
+```bash
+npm install firebase
+```
+
+次に、Firebase の初期化コードを作成します。
+
+```ts
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "xxxx",
+  authDomain: "xxxx.firebaseapp.com",
+  projectId: "xxxx",
+  storageBucket: "xxxx.appspot.com",
+  messagingSenderId: "xxxx",
+  appId: "xxxx",
+};
+
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+```
+
+ここまでで、Firebase を使用する準備は整いました。
+
+## Firestore の使用してみる
+
+ここから実際に Firestore を使用してデータの保存と取得を行なってみたいと思います。
+現在まだ作成途中ですが、簡単な日記アプリを作成していますので、その中での使用例をまとめていきます。
+
+### Firestore とは
+
+そもそも FireStore とはクラウド型 NoSQL データベースで、Firebase の一部として提供されています。
+どうやらテーブルではなくコレクションとドキュメントという概念でデータを管理しているようです。
+
+### Firestore の使用例
+
+簡単な使用例をとしてメモを保存するコードを作成してみます。
+
+```js title="メモを保存するコード"
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "./firebase";
+
+const saveNote = async (text) => {
+  try {
+    await addDoc(collection(db, "notes"), {
+      content: text,
+      createdAt: new Date(),
+    });
+    console.log("保存成功！");
+  } catch (e) {
+    console.error("保存失敗", e);
+  }
+};
+```
+
+```js title="メモを取得するコード"
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "./firebase";
+
+const fetchNotes = async () => {
+  const querySnapshot = await getDocs(collection(db, "notes"));
+  querySnapshot.forEach((doc) => {
+    console.log(`${doc.id} =>`, doc.data());
+  });
+};
+```
+
+## まとめ
+
+今回は firebase を導入してデータの保存と取得を行う理由をまとめてみました。
+まずは作成中の日記アプリを完成させて、ブログにまとめていきたいと思います。
