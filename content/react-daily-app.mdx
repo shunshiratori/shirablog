@@ -1,0 +1,125 @@
+---
+title: ReactとFirestoreを使用してシンプルな日記アプリを作成
+description: ReactとFirebase（Firestore）を使って、「1日1投稿」しかできない日記アプリを作成しました。投稿制限の仕組みや実装の工夫についてまとめます。
+date: 2025-05-12
+---
+
+## 初めに
+
+今回は、Firebase(Firestore)を使用して、シンプルな日記アプリを作成しました。
+データベースを用いたアプリを作成することで、データの取得と出力の仕組みを学ぶことができました。
+また、[こちら](https://www.shirashun.com/blog/save-to-firebase)の投稿でも触れたように、Firebase についても学びながら開発してみました！
+
+## 実装ステップ
+
+どのようにして開発を進めていったのか、下記のようなステップでまとめました。
+
+### UI の作成
+
+まずは大枠を作成するため、簡単な UI を作成しました。
+特に大きな工夫はしていませんが、v0 を使用してデザインの案を出してもらうことで、比較的時間をかけずに UI を作成しました。
+
+### 仮ロジック実装(まずはローカルストレージ)
+
+次に投稿を保存するためのロジックを実装していきます。
+Firebase を使用することは決まっていましたが、まずはローカルストレージを使用して、データの保存と出力を実装してみました。
+一旦ローカルストレージを使用してデータの入出力ができることを確認することでおおまかなイメージがついた状態で、次のステップに進めました。
+
+### ロジック実装(Firebase 使用)
+
+ここでは実際に本来の目的である Firebase(Firestore)を使用して、投稿のデータを保存と取得を行なっていきます。
+まず Firebase の導入に関しては[こちら](https://www.shirashun.com/blog/save-to-firebase)の記事のように初期設定を行いました。
+
+```ts title="保存の処理"
+const now = new Date();
+now.setHours(now.getHours() + 9); // UTC → JST に変換
+const today = now.toISOString().split("T")[0];
+
+await setDoc(doc(db, "diary", today), {
+  title: title,
+  content: content,
+});
+```
+
+```tsx title="取得の処理"
+{
+  Object.entries(diarys).map(([key, value]) => (
+    <article
+      key={key}
+      className="w-full max-w-3xl mx-auto p-5 border rounded-lg border-gray-200 shadow-sm"
+    >
+      <p className="mb-2 text-gray-500">{value.id}</p>
+      <p className="mb-4 font-bold text-xl">{value.title}</p>
+      <p>{value.content}</p>
+    </article>
+  ));
+}
+```
+
+### リファクタリング
+
+ここまでで一通りの機能は実装できたので、リファクタリングを行っていきました。
+主に下記の 2 点についてリファクタリングを行いました！
+
+1. 1 日 1 投稿の制限
+2. 保存後の再レンダリングについて
+
+#### 1 日 1 投稿の制限
+
+日記アプリの中では、1 日 1 投稿の制限を設けることにしたかったため、FireStore に保存されているデータを取得して、すでに今日の日付のデータが存在する場合は、投稿できないようにしました。
+
+```tsx title="投稿の制限"
+const q = query(collection(db, key), orderBy("createdAt", "desc"));
+const snapshot = await getDocs(q);
+
+const hasPostedToday = snapshot.docs.some((doc) => {
+  const data = doc.data();
+  if (!data.createdAt) return false;
+
+  const createdAt = new Date(data.createdAt.seconds * 1000);
+  createdAt.setHours(createdAt.getHours() + 9);
+  const entryStr = createdAt.toISOString().slice(0, 10);
+
+  return entryStr === todayStr;
+});
+
+if (hasPostedToday) {
+  alert("今日はすでに投稿済みです。");
+  return;
+}
+```
+
+#### 保存後の再レンダリングについて
+
+次に日記を保存した際にすぐに一覧に反映がされていなかったため、保存後にすぐに日記が表示を行えるようにしました。
+
+```tsx title="保存後の再レンダリング"
+useEffect(() => {
+  const q = query(collection(db, key), orderBy("createdAt", "desc"));
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const data: Diary[] = snapshot.docs.map((doc) => {
+      const d = doc.data();
+      return {
+        id: doc.id,
+        title: d.title,
+        content: d.content,
+        createdAt: d.createdAt.toDate(),
+      };
+    });
+    setDiarys(data);
+  });
+
+  return () => unsubscribe();
+}, [db]);
+```
+
+### デプロイ
+
+最後は Vercel を使用してデプロイを行いました。
+公開したものは[こちら](https://diary-app.shirashun.com/)から確認できます。
+
+## まとめ
+
+今回初めて Firebase のようなデータベースを使用してアプリを作成しましたが、非常に簡単にデータの保存と取得ができることに驚きました。
+ただ、Firestore のルール設定やセキュリティ面についてはまだまだ学ぶことが多いので、今後も Firebase を使用していく中で学んでいきたいと思います。
+また、日記アプリの中でも改善の余地はたくさんあるので、今後も少しずつ改善していこうと思っています！
