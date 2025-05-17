@@ -1,0 +1,108 @@
+---
+title: 初心者が簡単なAPIを自作してみた話
+description: APIとは何かを理解するために、遺数千億分で簡単なAPIをNode.jsとExpressで作成してみたので、その過程をまとめました。
+date: 2025-05-18
+---
+
+## 初めに
+
+最近 API を使用した簡易的なアプリを作成する機会がありましたが、そもそも API 自体はどのように作成されているのか気になりました。
+そこで、API の基本的な仕組みを理解するために、Node.js と Express を使用して簡単な API を自作してみました。
+
+## 開発環境の構築
+
+まずは開発環境を構築していきます。
+プロジェクトの作成と必要なパッケージのインストールを行います。
+
+```bash
+mkdir simple-api-practice
+cd simple-api-practice
+npm init -y
+npm install express
+```
+
+今回は、初心者でも簡単に開発を進めれるように Express を使用しました。
+
+## API を作ってみる
+
+ここまではくれば、あとは実際に簡単な API を作成していこうと思います
+
+### GET リクエストを返すエンドボイントを作成
+
+```js
+const express = require("express");
+const app = express();
+const PORT = 3000;
+
+app.get("/hello", (req, res) => {
+  res.json({ message: "こんにちは、APIの世界へようこそ！" });
+});
+
+app.listen(PORT, () => {
+  console.log(`サーバー起動中: http://localhost:${PORT}`);
+});
+```
+
+次に上記のコードを実行します。
+
+```bash
+node index.js
+```
+
+実行後にブラウザもしくは curl コマンドを使用して、`http://localhost:3000/hello`にアクセスします。
+期待する結果としては下記のような JSON 形式のレスポンスが返ってきます。
+
+```json
+{
+  "message": "こんにちは、APIの世界へようこそ！"
+}
+```
+
+### POST リクエストでデータを受け取る
+
+次に POST リクエストを受け取るエンドポイントを作成します。
+また、POST でデータを受け取って保存をしてみて、GET リクエストでそのデータを取得するような API を作成してみます。
+
+```js title="データを保存"
+app.use(express.json());
+let messages = [];
+
+app.post("/message", (req, res) => {
+  const { text } = req.body;
+  messages.push({ id: messages.length + 1, text });
+  res.status(201).json({ message: "保存しました" });
+});
+```
+
+```js title="データを取得"
+app.get("/messages", (req, res) => {
+  res.json(messages);
+});
+```
+
+まずは下記のコマンドでデータを保存します。
+
+```bash
+curl -X POST http://localhost:3000/message -H "Content-Type: application/json" -d '{"text":"こんにちは！"}'
+```
+
+その後、下記のコマンドでデータを取得して出力してみたいと思います。
+
+```bash
+curl http://localhost:3000/messages
+```
+
+期待する結果としては下記のような JSON 形式のレスポンスが返ってきます。
+
+```json
+[
+  { "id": 1, "text": "おはようございます" },
+  { "id": 2, "text": "こんにちは" }
+]
+```
+
+## まとめ
+
+ここまでで本当に初心者なりに API の仕組みを理解することができました。
+どのように流れでリクエストが行われているのかを理解することができたので、今後は実際に API を使用したアプリケーションを作成していければと思います！
+また、API のセキュリティやエラーハンドリング、データベースとの連携など、より実践的な内容についても学んでいきたいと思います。
