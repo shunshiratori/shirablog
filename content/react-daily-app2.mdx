@@ -1,0 +1,169 @@
+---
+title: ReactとFirestoreを使用して作成した日記アプリに編集機能の追加
+description: 前回作成した日記アプリに投稿の編集と削除の機能を追加したので備忘録としてまとめます。
+date: 2025-05-31
+---
+
+## 初めに
+
+今回は、以前作成した簡易的な日記アプリに、投稿の編集と削除の機能を追加しましたので、その実装方法を備忘録としてまとめていきます。
+[前回の記事](https://www.shirashun.com/blog/react-daily-app)
+
+## 編集機能の追加
+
+以前作成した時には一度投稿を保存した後は編集ができない仕様だったため、まずは編集機能を追加していこうと思いました。
+
+### 編集欄の作成
+
+はじめに、投稿の編集を行うための入力欄を作成しました。
+
+```tsx title="編集欄の作成"
+<>
+  <input
+    type="text"
+    name="update-title"
+    value={title}
+    onChange={(e) => setTitle(e.target.value)}
+    placeholder="タイトル"
+    className="border border-gray-200 rounded-lg mb-5 w-full p-2"
+  />
+  <textarea
+    name="update-content"
+    value={content}
+    onChange={(e) => setContent(e.target.value)}
+    placeholder="内容"
+    className="border border-gray-200 rounded-lg w-full p-2"
+  ></textarea>
+</>
+```
+
+### 編集画面への切り替え
+
+次は編集ボタンを押下した際に上記で作成した入力欄に切り替わるようにします。
+今回は editingId という state を用意し、編集したい投稿の ID を保持することで、どの投稿を編集しているかを管理します。
+その投稿の ID と投稿の ID が一致した場合に入力欄を表示するようにします。
+
+```tsx title="編集画面への切り替え"
+const [editingId, setEditingId] = useState<string | null>(null);
+{
+  editingId === item.id ? (
+    // 編集入力欄
+    <>
+      <input
+        type="text"
+        name="update-title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="タイトル"
+        className="border border-gray-200 rounded-lg mb-5 w-full p-2"
+      />
+      <textarea
+        name="update-content"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="内容"
+        className="border border-gray-200 rounded-lg w-full p-2"
+      ></textarea>
+      <div className="flex items-center justify-start mt-4 gap-3">
+        <button
+          className="bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition grid cursor-pointer text-sm"
+          onClick={() => {
+            saveContent({
+              db,
+              key,
+              title,
+              setTitle,
+              content,
+              setContent,
+              isEditingId: editingId,
+              setIsEditingId: setEditingId,
+            });
+          }}
+        >
+          更新する
+        </button>
+        <button
+          className="bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition grid cursor-pointer text-sm"
+          onClick={() => {
+            setEditingId(null);
+            setTitle("");
+            setContent("");
+          }}
+        >
+          キャンセル
+        </button>
+      </div>
+    </>
+  ) : (
+    // 投稿一覧
+    <>
+      <p className="mb-2 text-gray-500">{item.id}</p>
+      <p className="mb-4 font-bold text-xl">{item.title}</p>
+      <p>{item.content}</p>
+      <div className="flex gap-3">
+        <button
+          className="mt-4 bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition grid cursor-pointer text-sm"
+          onClick={editContent(item)}
+        >
+          編集する
+        </button>
+        <button
+          className="mt-4 bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition grid cursor-pointer text-sm"
+          onClick={() => deleteContent({ db, key, id: item.id })}
+        >
+          削除する
+        </button>
+      </div>
+    </>
+  );
+}
+```
+
+### 更新関数への処理追加
+
+ここまでくれば後は編集した内容を更新する処理を追加するだけです。
+以前からあった `saveContent` 関数に今日の投稿がすでにあるかどうかを確認する処理と、編集中の ID がある場合はその ID を使って更新する処理を追加します。
+
+```tsx title="更新関数への処理追加"
+if (hasPostedToday && isEditingId === null) {
+  alert("今日はすでに投稿済みです。");
+  return;
+} else {
+  const today = new Date().toISOString().split("T")[0];
+  await setDoc(doc(db, key, today), {
+    title: title,
+    content: content,
+    createdAt: new Date(),
+  });
+}
+if (isEditingId && setIsEditingId) {
+  setIsEditingId(null);
+}
+```
+
+## 削除機能の追加
+
+次は投稿の削除機能を追加します。
+こちらは編集機能よりも簡単で、削除ボタンを押下した際にその投稿の ID を指定して削除するだけです。
+
+```tsx title="削除機能の追加"
+// 削除関数
+export const deleteContent = async (props: Props) => {
+  const { db, key, id } = props;
+  await deleteDoc(doc(db, key, id));
+};
+
+// 削除ボタン
+<button
+  className="mt-4 bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition grid cursor-pointer text-sm"
+  onClick={() => deleteContent({ db, key, id: item.id })}
+>
+  削除する
+</button>;
+```
+
+## まとめ
+
+今回は日記アプリに編集と削除機能を追加しましたが、初めはどうやって実装するのかイメージができていなかったものの、実際にやってみると意外と簡単に実装できました。
+これで、日記アプリの機能がより充実し、ユーザーが投稿を管理しやすくなりました。
+次回はログイン機能なども実施して、より本格的なアプリにしていきたいと思っています！
