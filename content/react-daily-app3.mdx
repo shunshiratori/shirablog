@@ -1,0 +1,179 @@
+---
+title: Firebase で日記アプリにログイン機能を実装する方法
+description: Firebase Authentication を使って、ベースの日記アプリにメール／パスワードログインを追加する具体手順を解説します。
+date: 2025-07-06
+---
+
+## はじめに
+
+今回は前回まで作成してきた日記アプリに、Firebase Authentication を使ってログイン機能を追加しましたので、手順をこちらに残していきます。
+前回までの内容は以下のリンクから確認できます。
+
+- [React と Firestore を使用してシンプルな日記アプリを作成](https://www.shirashun.com/blog/react-daily-app)
+- [React と Firestore を使用して作成した日記アプリに編集機能の追加](https://www.shirashun.com/blog/react-daily-app2)
+
+## Authentication の有効化
+
+まずは Firebase Console で Authentication を有効化していきたいと思います。
+手順としては簡単で、まず Firebase Console の Authentication のページに移動し、前回作成してプロジェクトを選択します。
+次に Authentication のタブを開き、サインイン方法の中から「メール/パスワード」を選択し、有効化していきます。
+これだけで Authentication の設定は完了しました！
+
+## 認証状態を管理する
+
+次にログインした際の情報をログイン後のページに渡すための状態管理を行うための初期設定を行います。
+
+```tsx title="src/contexts/AuthContext.tsx"
+import { onAuthStateChanged, User } from "firebase/auth";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { auth } from "../App";
+
+type AuthContextType = { user: User | null; loading: boolean };
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+});
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
+```
+
+## ログインフォームの作成
+
+次にログインフォ作成していきます。
+
+```tsx title="src/components/LoginForm.tsx"
+import { onAuthStateChanged, User } from "firebase/auth";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { auth } from "../App";
+
+type AuthContextType = { user: User | null; loading: boolean };
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+});
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
+```
+
+ログインが成功できたかどうかで表示される情報を変更するためのロジックを作成します。
+
+```tsx title="src/components/ProtectedRoute.tsx"
+import { onAuthStateChanged, User } from "firebase/auth";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { auth } from "../App";
+
+type AuthContextType = { user: User | null; loading: boolean };
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+});
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
+```
+
+## ログイン情報と日記の紐付け
+
+ここまででログイン機能の基本的な部分は完成しました。
+ただ今のままだとログインした人全員に同じ日記が見えてしまいます。
+そこで、ログインしたユーザーごとに日記を紐付けるための設定と実装を行います。
+
+```tsx title="src/logic/savaContent.ts"
+if (hasPostedToday && editingId === null) {
+  alert("今日はすでに投稿済みです。");
+  return;
+} else {
+  const today = new Date().toISOString().split("T")[0];
+  await setDoc(doc(db, key, today), {
+    title: title,
+    content: content,
+    userId: uid,
+    createdAt: new Date(),
+  });
+}
+if (editingId && setEditingId) {
+  setEditingId(null);
+}
+```
+
+保存する際に`userId: uid,`によって、ログインしたユーザーの ID を日記に紐付けるようにします。
+
+## まとめ
+
+ここまでで、Firebase Authentication を使って日記アプリにログイン機能を追加することができました！
+個人的な感想としては思思ったより簡単にログイン機能を追加できたことに驚いたのと、今回はメールアドレスとパスワードでのログイン機能を実装しましたが、他にも Google や Facebook などのソーシャルログインも簡単に実装できることがわかりました。
+日記アプリの開発自体は今回で一旦終了しますが、この日記アプリで学んだ技術を用いて他のアプリケーションの開発にも挑戦していきたいと思います。
